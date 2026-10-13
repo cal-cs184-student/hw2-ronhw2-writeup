@@ -91,7 +91,7 @@
 
 		<h2>Overview</h2>
 		<p>
-		This homework has two halves. In the first, I implemented de Casteljau's algorithm. I used it to evaluate Bezier curves from their control points, then applied it twice, once along each parameter, to evaluate bicubic Bezier patches into a triangle mesh (the teapot). In the second half, I worked directly on the half-edge data structure. I computed area-weighted vertex normals for smooth shading, wrote the two local remeshing operations (edge flip and edge split), and combined them into Loop subdivision, which upsamples a triangle mesh into a smoother one. For extra credit, edge split also works on boundary edges, and Loop subdivision uses the boundary (crease) rules so meshes with holes subdivide correctly.
+		This homework has two halves. In the first, I implemented de Casteljau's algorithm. I used it to evaluate Bezier curves from their control points, then applied it twice, once along each parameter, to evaluate bicubic Bezier patches into a triangle mesh (the teapot). In the second half, I worked directly on the half-edge data structure. I computed area-weighted vertex normals for smooth shading, wrote the two local remeshing operations (edge flip and edge split), and combined them into Loop subdivision, which upsamples a triangle mesh into a smoother one. For extra credit, edge split also works on boundary edges, and Loop subdivision uses the boundary (crease) rules so meshes with holes subdivide correctly. For the optional art competition (Section III), I box-modeled a fox-like character in code and smoothed it with my Loop subdivision.
 		</p>
 		<p>
 		The biggest takeaway was how much one representation choice matters. Once the mesh is stored as half-edges, every local operation becomes "relabel a fixed, small set of pointers". So flip and split are short functions, and subdivision is just "split everything, then flip some edges". The hard part is bookkeeping, not math. I also learned that subdivision results depend on mesh <i>connectivity</i>, not just geometry. Two triangulations of the same cube subdivide into visibly different shapes.
@@ -418,7 +418,34 @@ twins: h6/h7, h8/h9, h10/h11, h0/h3
 		</table>
 
 		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		<p>Not attempted.</p>
+		<p>My mesh is a small fox-like character, saved as <code>docs/artcompetition.dae</code>. Instead of modeling it by hand in Blender, I box-modeled it in code. A short script starts from a box and builds the character by extruding faces, the same way box modeling works in a modeling tool. Each extrusion copies a face, moves it, scales it about its center, and stitches the gap with new side faces. Copying the face and stitching the gap is what keeps the mesh closed and keeps the faces oriented the same way.</p>
+		<ul>
+			<li><b>Torso.</b> A 3 &times; 1 &times; 3 grid box with a narrow waist and a pushed-out chest. Its top, side, bottom, and back cells are where the neck, arms, legs, and tail start.</li>
+			<li><b>Head.</b> The neck widens into a head with three cells along each side, so the face is a 3 &times; 3 grid of quads. The top is split into a 3 &times; 3 grid and raised into a dome.</li>
+			<li><b>Face.</b> Two tall pointed ears grow from the top cells. Two eye sockets are inset and pushed into the head, each with an eyeball inside. The middle cell becomes a snout that tapers to a round nose, with a small chin below it.</li>
+			<li><b>Hands.</b> Each arm has a shoulder, elbow, and wrist. The palm's end face is split into four cells, which become four fingers of different lengths with three segments each. A thumb comes out of the palm's front side.</li>
+			<li><b>Legs.</b> Each leg has a hip, knee, and ankle. A foot comes forward from the front of the ankle and ends in three toes.</li>
+			<li><b>Tail.</b> The lower back grows a tail that curls up. I rotate each new ring of faces so it stays perpendicular to the curve.</li>
+		</ul>
+		<p>The whole model takes 99 extrusions and 5 face-grid splits. To split a face into a grid (for the fingers, toes, and the top of the head), I extrude the face with extra vertices along two of its edges, then fill in the grid's interior. That way neighboring faces never get T-junctions. Every face is turned into triangles before export: quads are split along their shorter diagonal. Before export, I check that every edge has exactly two faces running in opposite directions, and that no triangle is degenerate. The mesh has 484 vertices, 1446 edges, and 964 triangles. Its Euler characteristic V &minus; E + F is 2, which means it is closed and has no holes. After loading it into meshedit, it also passes my half-edge validity checks after each round of Loop subdivision. It has 3,856 triangles after one round and 15,424 after two.</p>
+		<p>Compared with the baseline humanoid in the tutorial, it adds ears, eye sockets with eyeballs, a snout and nose, four fingers and a thumb on each hand, three toes on each foot, joints along the limbs, and a curled tail. The low-poly faces show up well under Loop subdivision. The ears stay pointed, the fingers stay separate, and the tail becomes one smooth curve.</p>
+		<table class="grid">
+			<tr>
+				<td><img src="assets/p7_l0_wire.png"/><figcaption>Original mesh, 964 triangles.</figcaption></td>
+				<td><img src="assets/p7_l1_wire.png"/><figcaption>After 1 round of Loop subdivision, 3,856 triangles.</figcaption></td>
+				<td><img src="assets/p7_l2_wire.png"/><figcaption>After 2 rounds, 15,424 triangles.</figcaption></td>
+			</tr>
+			<tr>
+				<td><img src="assets/p7_l0_shaded.png"/><figcaption>Original, flat shading.</figcaption></td>
+				<td><img src="assets/p7_l1_shaded.png"/><figcaption>1 round, smooth shading.</figcaption></td>
+				<td><img src="assets/p7_l2_shaded.png"/><figcaption>2 rounds, smooth shading.</figcaption></td>
+			</tr>
+			<tr>
+				<td><img src="assets/p7_l0_face_wire.png"/><figcaption>The original face: inset eye sockets, the snout cell, and the chin.</figcaption></td>
+				<td><img src="assets/p7_l2_face.png"/><figcaption>The face after 2 rounds.</figcaption></td>
+				<td><img src="assets/p7_l2_phong_back.png"/><figcaption>2 rounds with the Phong shader, from behind, showing the tail and fingers.</figcaption></td>
+			</tr>
+		</table>
 		</div>
 	</body>
 </html>
